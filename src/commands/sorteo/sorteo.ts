@@ -1,7 +1,7 @@
+import { SlashCommandBuilder } from '@discordjs/builders';
 import { ActionRowBuilder, ButtonBuilder, ModalBuilder, TextInputBuilder } from '@discordjs/builders';
 import { Command } from '../../types/command';
 import {
-  SlashCommandBuilder,
   CommandInteraction,
   GuildMember,
   PermissionsBitField,
@@ -11,8 +11,8 @@ import {
   ButtonStyle,
   ButtonInteraction,
 } from 'discord.js';
-import { halve } from '../../services/lottery';
 import { getLastBlockAndHash } from '../../services/mempool';
+import { _fdr, _rngIni } from '../../services/lottery';
 
 interface Participant {
   [id: string]: GuildMember;
@@ -158,33 +158,36 @@ async function startGiveaway(targetBlock: string, winnersCount: number, _discord
 
   const intervalId = setInterval(async () => {
     const blockInfo = await getLastBlockAndHash();
-    console.log('blockInfo', blockInfo); // debug
+    console.log('intervalo blockInfo', blockInfo); // debug
+
     if (!blockInfo) return;
 
     const { height, hash } = blockInfo;
+
     if (height >= parseInt(targetBlock)) {
       clearInterval(intervalId);
 
-      const players: { [id: string]: number } = {};
-      Object.keys(participants).forEach((id) => {
-        players[id] = 1; // Asignar un peso igual a cada participante
-      });
+      const ids = Object.keys(participants);
+      const winner = ids[_fdr(_rngIni(hash), ids.length)];
 
-      let winners = players;
-      while (Object.keys(winners).length > winnersCount) {
-        const result = halve(hash, winners);
-        winners = result.winners;
-      }
-
-      const winnerIds = Object.keys(winners);
-      const winnersList = winnerIds.map((id) => participants[id]);
+      const participantsIdString: string[] = Object.keys(participants);
 
       // Send the winners list
       channel.send({
-        content: `:tada: Los ganadores del sorteo son:\n${winnersList.map((winner) => `<@${winner.id}>`).join('\n')}`,
+        content: `# :tada: El ganador del sorteo es: <@${winner}> :tada:\n## Participantes: ${participantsIdString.map((id) => `<@${id}>`).join('\n')}\n`,
       });
     }
   }, 60000); // Verificar cada minuto
+}
+
+export async function getParticipantsIds() {
+  return Object.keys(participants);
+}
+
+export async function resetParticipantsF() {
+  Object.keys(participants).forEach((key) => {
+    delete participants[key];
+  });
 }
 
 export default sorteo;
