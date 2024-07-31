@@ -174,7 +174,7 @@ async function startGiveaway(targetBlock: string, winnersCount: number, _discord
 
       // Send the winners list
       channel.send({
-        content: `# :tada: El ganador del sorteo es: <@${winner}> :tada:\n## Participantes: ${participantsIdString.map((id) => `<@${id}>`).join('\n')}\n`,
+        content: `# :tada: El ganador del sorteo es: <@${winner}> :tada:\n## Participantes:\n ${participantsIdString.map((id) => `<@${id}>`).join('\n')}\n`,
       });
     }
   }, 60000); // Verificar cada minuto
