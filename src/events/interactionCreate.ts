@@ -1,7 +1,7 @@
 import { Interaction } from 'discord.js';
 import { BotEvent } from '../types/botEvents';
 import { ExtendedClient } from '../types/discordClient';
-import { addParticipant, createGiveway } from '../commands/sorteo/sorteo';
+import giveaway, { addParticipant, createGiveway } from '../commands/sorteo/sorteo';
 
 const event: BotEvent = {
   name: 'interactionCreate',
@@ -18,21 +18,23 @@ const event: BotEvent = {
       command.execute(interaction); // If command exist, execute it
     }
 
-    //////////////
-    /// Button ///
-    //////////////
-    else if (interaction.isButton()) {
-      if (interaction.customId === 'sorteo-button') {
-        addParticipant(interaction);
-      }
-    }
-
     ////////////////////
     /// Modal Submit ///
     ////////////////////
     else if (interaction.isModalSubmit()) {
-      if (interaction.customId === 'sorteo-modal') {
-        await createGiveway(interaction);
+      if (interaction.customId.startsWith('giveaway-modal-id:')) {
+        const giveawayId: string = interaction.customId.split(':')[1]!;
+        await createGiveway(giveawayId, interaction);
+      }
+    }
+
+    //////////////
+    /// Button ///
+    //////////////
+    else if (interaction.isButton()) {
+      if (interaction.customId.startsWith('giveaway-button-id:')) {
+        const giveawayId: string = interaction.customId.split(':')[1]!;
+        addParticipant(giveawayId, interaction);
       }
     }
   },
