@@ -1,13 +1,18 @@
 import { Command } from './../../types/command';
-import { SlashCommandBuilder, CommandInteraction } from 'discord.js';
+import { SlashCommandBuilder, CommandInteraction, CommandInteractionOptionResolver } from 'discord.js';
 import { getParticipantsIds } from '../sorteo/sorteo';
 
 const getParticipants: Command = {
   data: new SlashCommandBuilder()
     .setName('ver-participantes')
-    .setDescription('Ver participantes') as SlashCommandBuilder,
+    .setDescription('Ver participantes')
+    .addStringOption((option) =>
+      option.setName('id').setDescription('ID del sorteo').setRequired(true),
+    ) as SlashCommandBuilder,
   execute: async (interaction: CommandInteraction) => {
-    const participants: string[] = await getParticipantsIds();
+    const giveawayId = (interaction.options as CommandInteractionOptionResolver).getString('id');
+
+    const participants: string[] | null = getParticipantsIds(giveawayId!);
 
     if (!participants) {
       interaction.reply('No hay participantes');
